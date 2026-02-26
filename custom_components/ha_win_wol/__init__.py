@@ -48,7 +48,7 @@ async def async_setup_entry(hass, entry):
 
     for component in PLATFORMS:
         hass.async_create_task(
-            hass.config_entries.async_forward_entry_setup(entry, component)
+            hass.config_entries.async_forward_entry_setups(entry, [component])
         )
 
     return True
@@ -102,4 +102,5 @@ class DEVICEDataUpdateCoordinator(DataUpdateCoordinator):
                               +'","status":"'+ self.status +'"}')  
         except Exception as err:
             raise UpdateFailed(f"Error communicating with My Custom Device: {err}")
+
         
