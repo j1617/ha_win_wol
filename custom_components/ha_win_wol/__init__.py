@@ -3,7 +3,7 @@ import json
 import requests
 from homeassistant import config_entries, core
 from .const import (
-    DOMAIN
+    DOMAIN, CONF_IP, CONF_NAME, CONF_MAC
 )
 import logging
 import subprocess
@@ -57,6 +57,11 @@ async def update_listener(hass, entry):
     await hass.config_entries.async_reload(entry.entry_id)
 
 async def async_unload_entry(hass: core.HomeAssistant, entry: config_entries.ConfigEntry):
+    ip = entry.data.get(CONF_IP)
+    # 卸载时清理对应的 coordinator 数据
+    if ip and ip in hass.data[DOMAIN]:
+        del hass.data[DOMAIN][ip]
+        
     unload_ok = all(
         await asyncio.gather(
             *[
