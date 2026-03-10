@@ -12,6 +12,7 @@
         },
         "error": {},
         "abort": {
+            "already_configured": "该 IP 地址已配置过.",
             "single_instance_allowed": "仅允许单个配置."
         }
     }
