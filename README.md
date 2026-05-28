@@ -6,6 +6,14 @@ HA插件交流QQ群： 754364399
 
 ## 版本历史
 
+### v3.1.1 (2026-05-28)
+- 修复 `binary_sensor.py` 中 docstring 引号错误（弯引号导致 SyntaxError）
+- 修复 `extra_state_attributes` 中 `last_updated` 属性名错误（应为 `_last_updated`）
+
+### v3.1.0 (2026-05-28)
+- 修复 `extra_state_attributes` 中 `last_updated` 属性名错误（应为 `_last_updated`）
+- 在 `DEVICEDataUpdateCoordinator` 中维护 `_last_updated` 时间戳
+
 ### v3.0.1 (2026-05-28)
 - 修复 binary_sensor 平台加载失败问题
 - `device_class` 改用 `BinarySensorDeviceClass.CONNECTIVITY` 枚举

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Hass.io My Custom Switch Plugin Config Flow
 """
 import voluptuous as vol

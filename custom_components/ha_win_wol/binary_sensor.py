@@ -1,4 +1,4 @@
-"""Binary sensor platform for ha_win_wol."""
+﻿"""Binary sensor platform for ha_win_wol."""
 import logging
 
 from homeassistant.components.binary_sensor import (
@@ -58,6 +58,6 @@ class DeviceStatusBinarySensor(CoordinatorEntity, BinarySensorEntity):
     def extra_state_attributes(self):
         """Return the state attributes."""
         attrs = {"ip": self.coordinator.data.get("ip")}
-        if self.coordinator.last_updated is not None:
-            attrs["last_update"] = self.coordinator.last_updated.isoformat()
+        if self.coordinator._last_updated is not None:
+            attrs["last_update"] = self.coordinator._last_updated.isoformat()
         return attrs

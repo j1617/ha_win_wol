@@ -1,4 +1,4 @@
-import logging
+﻿import logging
 from homeassistant.components.switch import SwitchEntity
 from .const import (
     DOMAIN, 

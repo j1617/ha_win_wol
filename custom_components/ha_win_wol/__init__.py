@@ -1,4 +1,4 @@
-import asyncio
+﻿import asyncio
 import json
 from homeassistant import config_entries, core
 from .const import (
