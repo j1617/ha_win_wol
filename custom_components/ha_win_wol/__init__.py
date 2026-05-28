@@ -6,7 +6,7 @@ from .const import (
 )
 import logging
 import subprocess
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.exceptions import ConfigEntryNotReady
@@ -17,9 +17,11 @@ PLATFORMS = [
     "binary_sensor",
 ]
 
+
 async def async_setup(hass: core.HomeAssistant, config: dict):
     hass.data.setdefault(DOMAIN, {})
     return True
+
 
 async def async_setup_entry(hass, entry):
     _LOGGER.debug("Setting up My Device component")
@@ -53,15 +55,16 @@ async def async_setup_entry(hass, entry):
 
     return True
 
+
 async def update_listener(hass, entry):
     await hass.config_entries.async_reload(entry.entry_id)
 
+
 async def async_unload_entry(hass: core.HomeAssistant, entry: config_entries.ConfigEntry):
     ip = entry.data.get(CONF_IP)
-    # 卸载时清理对应的 coordinator 数据
     if ip and ip in hass.data[DOMAIN]:
         del hass.data[DOMAIN][ip]
-        
+
     unload_ok = all(
         await asyncio.gather(
             *[
@@ -72,12 +75,11 @@ async def async_unload_entry(hass: core.HomeAssistant, entry: config_entries.Con
     )
     return unload_ok
 
+
 class DEVICEDataUpdateCoordinator(DataUpdateCoordinator):
     """Class to manage fetching DEVICE data."""
 
     def __init__(self, hass, entry, ip, name, mac, status):
-        # 使用 update_interval 的代码
-
         self.hass = hass
         self.entry = entry
 
@@ -87,6 +89,7 @@ class DEVICEDataUpdateCoordinator(DataUpdateCoordinator):
         self.status = status
 
         self._isenable = True
+        self._last_updated = None
 
         super().__init__(
             hass,
@@ -96,22 +99,21 @@ class DEVICEDataUpdateCoordinator(DataUpdateCoordinator):
         )
 
     def set_device_enabled(self, enabled):
-        # 设置设备是否可用
         self._isenable = enabled
 
     async def _async_update_data(self):
         """Fetch data from My Custom Device."""
         try:
-            # 通过ping检测设备在线状态
             result = await self.hass.async_add_executor_job(
                 self._ping_device
             )
             self.status = "0" if result else "-1"
+            self._last_updated = datetime.now()
             return {
                 "ip": self.ip,
                 "name": self.name,
                 "status": self.status
-            }  
+            }
         except Exception as err:
             raise UpdateFailed(f"Error communicating with My Custom Device: {err}")
 
@@ -130,5 +132,3 @@ class DEVICEDataUpdateCoordinator(DataUpdateCoordinator):
         except Exception as e:
             _LOGGER.error(f"Ping error: {e}")
             return False
-
-        
