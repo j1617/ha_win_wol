@@ -1,0 +1,19 @@
+{
+    "domain": "ha_win_wol",
+    "name": "ha_win_wol",
+    "documentation": "https://github.com/j1617/ha_win_wol/wiki",
+    "issue_tracker": "https://github.com/j1617/ha_win_wol/issues",
+    "dependencies": [],
+    "codeowners": [],
+    "requirements": [],
+    "version": "3.0.0",
+    "config_flow": true,
+    "translations": [],
+    "release_notes": "https://github.com/j1617/ha_win_wol/releases",
+    "hacs": {
+        "version": "2.0.0"
+    },
+    "image": "https://github.com/j1617/ha_win_wol/blob/master/icons/ha_win_wol.png"
+}
+  
+

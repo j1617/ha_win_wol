@@ -1,0 +1,19 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "description": "win10/11电脑网络唤醒ha插件，关注【工具箱达人】微信公众号获取更多插件",
+                "data": {
+                    "ip": "电脑的IP地址",
+                    "name": "电脑的名称",
+                    "mac": "电脑的MAC地址"
+                }
+            }
+        },
+        "error": {},
+        "abort": {
+            "already_configured": "该 IP 地址已配置过.",
+            "single_instance_allowed": "仅允许单个配置."
+        }
+    }
+}
