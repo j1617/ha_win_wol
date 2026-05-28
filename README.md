@@ -6,6 +6,11 @@ HA插件交流QQ群： 754364399
 
 ## 版本历史
 
+### v3.1.2 (2026-05-28)
+- 修复开关点击"打开"后立即跳回"关闭"的 bug
+- 新增 WOL 发送后 60 秒乐观状态：设备启动期间开关保持打开
+- 修复 `binary_sensor` 实体直接读取 coordinator 实时数据，避免状态滞后
+
 ### v3.1.1 (2026-05-28)
 - 修复 `binary_sensor.py` 中 docstring 引号错误（弯引号导致 SyntaxError）
 - 修复 `extra_state_attributes` 中 `last_updated` 属性名错误（应为 `_last_updated`）

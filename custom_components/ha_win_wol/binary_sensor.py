@@ -1,4 +1,4 @@
-﻿"""Binary sensor platform for ha_win_wol."""
+"""Binary sensor platform for ha_win_wol."""
 import logging
 
 from homeassistant.components.binary_sensor import (
@@ -40,16 +40,19 @@ class DeviceStatusBinarySensor(CoordinatorEntity, BinarySensorEntity):
     @property
     def is_on(self):
         """Return true if the device is online."""
-        if self.coordinator.data is None:
+        # 直接读取 coordinator 实时状态，避免使用已过期的缓存
+        data = self.coordinator.data
+        if data is None:
             return False
-        return self.coordinator.data.get("status") == "0"
+        return data.get("status") == "0"
 
     @property
     def device_info(self):
         """Return device information."""
+        data = self.coordinator.data
         return {
-            "identifiers": {(DOMAIN, self.coordinator.data.get("ip"))},
-            "name": self.coordinator.data.get("name"),
+            "identifiers": {(DOMAIN, data.get("ip") if data else self.entity_id)},
+            "name": data.get("name") if data else self._attr_name,
             "manufacturer": "ha_win_wol",
             "model": "Wake on LAN Device",
         }
@@ -57,7 +60,11 @@ class DeviceStatusBinarySensor(CoordinatorEntity, BinarySensorEntity):
     @property
     def extra_state_attributes(self):
         """Return the state attributes."""
-        attrs = {"ip": self.coordinator.data.get("ip")}
+        attrs = {}
+        data = self.coordinator.data
+        if data is not None:
+            attrs["ip"] = data.get("ip")
+        # 使用 coordinator 维护的时间戳
         if self.coordinator._last_updated is not None:
             attrs["last_update"] = self.coordinator._last_updated.isoformat()
         return attrs
