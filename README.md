@@ -1,6 +1,16 @@
 # ha_win_wol
 
+HA插件交流QQ群： 754364399
+
+关注公众号【工具箱达人】，里面有详细的使用教程
+
 ## 版本历史
+
+### v3.0.1 (2026-05-28)
+- 修复 binary_sensor 平台加载失败问题
+- `device_class` 改用 `BinarySensorDeviceClass.CONNECTIVITY` 枚举
+- `async_setup_entry` 增加 coordinator 空值检查
+- 移除冗余的 `async_added_to_hass` 重写
 
 ### v3.0.0 (2026-05-28)
 - 新增状态实体（binary_sensor）：通过ping检测电脑开关机状态
@@ -9,10 +19,6 @@
 - coordinator增加实时ping检测功能
 
 ---
-
-HA插件交流QQ群： 754364399
-
-关注公众号【工具箱达人】，里面有详细的使用教程
 
 #### 介绍
 ha插件，win10/11电脑网络唤醒ha插件
