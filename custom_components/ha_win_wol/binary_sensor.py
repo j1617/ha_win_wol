@@ -58,8 +58,6 @@ class DeviceStatusBinarySensor(CoordinatorEntity, BinarySensorEntity):
     def extra_state_attributes(self):
         """Return the state attributes."""
         attrs = {"ip": self.coordinator.data.get("ip")}
-        if self.coordinator.last_update_success is not None:
-            attrs["last_update_success"] = (
-                self.coordinator.last_update_success.isoformat()
-            )
+        if self.coordinator.last_updated is not None:
+            attrs["last_update"] = self.coordinator.last_updated.isoformat()
         return attrs
