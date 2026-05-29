@@ -1,15 +1,14 @@
-﻿import asyncio
+import asyncio
 import json
 from homeassistant import config_entries, core
-from .const import (
-    DOMAIN, CONF_IP, CONF_NAME, CONF_MAC
-)
+from .const import DOMAIN, CONF_IP, CONF_NAME, CONF_MAC
 import logging
-import subprocess
 from datetime import datetime, timedelta
 
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.exceptions import ConfigEntryNotReady
+import ping3
+
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS = [
@@ -24,34 +23,32 @@ async def async_setup(hass: core.HomeAssistant, config: dict):
 
 
 async def async_setup_entry(hass, entry):
-    _LOGGER.debug("Setting up My Device component")
-    ip = entry.data.get('ip')
-    name = entry.data.get('name')
-    mac = entry.data.get('mac')
+    ip = entry.data.get("ip")
+    name = entry.data.get("name")
+    mac = entry.data.get("mac")
 
-    result = subprocess.run(["ping", "-n", "1", "-w", "1000", ip], capture_output=True, text=True)
-
-    if result.returncode == 0:
-        status = "0"
-    else:
+    # 初始 ping
+    try:
+        delay = await hass.async_add_executor_job(lambda: ping3.ping(ip, timeout=2))
+        # ping3 成功返回延迟秒数（浮点数），失败返回 False 或 None
+        # 注意：bool 是 int 的子类，必须用 float 而非 (int, float) 排除 bool
+        status = "0" if isinstance(delay, float) else "-1"
+        _LOGGER.debug("初始 ping -> IP:%s 延迟:%s 状态:%s", ip, delay, status)
+    except Exception as e:
+        _LOGGER.error("初始 ping 异常 IP:%s err:%s", ip, e)
         status = "-1"
-
-    _LOGGER.debug(f"获取初始化信息完成，开始创建设备IP: {ip}, Name:{name}, Mac:{mac}, Status: {status}")
 
     coordinator = DEVICEDataUpdateCoordinator(hass, entry, ip, name, mac, status)
 
     await coordinator.async_refresh()
+    _LOGGER.debug("初始 refresh 完成 success=%s data=%s",
+                  coordinator.last_update_success, coordinator.data)
     if not coordinator.last_update_success:
         raise ConfigEntryNotReady
 
     hass.data[DOMAIN][ip] = coordinator
 
-    _LOGGER.info(f"创建设备完成IP: {ip}, Name:{name}, Mac:{mac}, Status: {status}")
-
-    for component in PLATFORMS:
-        hass.async_create_task(
-            hass.config_entries.async_forward_entry_setups(entry, [component])
-        )
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
 
@@ -77,17 +74,13 @@ async def async_unload_entry(hass: core.HomeAssistant, entry: config_entries.Con
 
 
 class DEVICEDataUpdateCoordinator(DataUpdateCoordinator):
-    """Class to manage fetching DEVICE data."""
-
     def __init__(self, hass, entry, ip, name, mac, status):
         self.hass = hass
         self.entry = entry
-
         self.ip = ip
         self.name = name
         self.mac = mac
         self.status = status
-
         self._isenable = True
         self._last_updated = None
 
@@ -102,33 +95,22 @@ class DEVICEDataUpdateCoordinator(DataUpdateCoordinator):
         self._isenable = enabled
 
     async def _async_update_data(self):
-        """Fetch data from My Custom Device."""
         try:
-            result = await self.hass.async_add_executor_job(
-                self._ping_device
+            delay = await self.hass.async_add_executor_job(
+                lambda: ping3.ping(self.ip, timeout=2)
             )
-            self.status = "0" if result else "-1"
-            self._last_updated = datetime.now()
-            return {
-                "ip": self.ip,
-                "name": self.name,
-                "status": self.status
-            }
+            # ping3 成功返回延迟秒数（int/float），失败返回 False 或 None
+            # 注意：bool 是 int 的子类，必须用 float 而非 (int, float) 排除 bool
+            self.status = "0" if isinstance(delay, float) else "-1"
+            _LOGGER.debug("ping3 -> IP:%s 延迟:%s status:%s", self.ip, delay, self.status)
         except Exception as err:
-            raise UpdateFailed(f"Error communicating with My Custom Device: {err}")
+            _LOGGER.error("ping3 异常 IP:%s err:%s", self.ip, err)
+            self.status = "-1"
+        finally:
+            self._last_updated = datetime.now()
 
-    def _ping_device(self):
-        """同步执行ping检测"""
-        try:
-            result = subprocess.run(
-                ["ping", "-n", "1", "-w", "2000", self.ip],
-                capture_output=True,
-                text=True,
-                timeout=5
-            )
-            return result.returncode == 0
-        except subprocess.TimeoutExpired:
-            return False
-        except Exception as e:
-            _LOGGER.error(f"Ping error: {e}")
-            return False
+        return {
+            "ip": self.ip,
+            "name": self.name,
+            "status": self.status,
+        }

@@ -22,7 +22,6 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         _LOGGER.error("Coordinator not found for IP: %s", ip)
         return
 
-    _LOGGER.debug("Setting up binary sensor for %s (%s)", name, ip)
     status_sensor = DeviceStatusBinarySensor(coordinator, ip, name)
     async_add_entities([status_sensor], False)
 
@@ -40,11 +39,14 @@ class DeviceStatusBinarySensor(CoordinatorEntity, BinarySensorEntity):
     @property
     def is_on(self):
         """Return true if the device is online."""
-        # 直接读取 coordinator 实时状态，避免使用已过期的缓存
         data = self.coordinator.data
         if data is None:
+            _LOGGER.debug("coordinator.data is None, 返回 False")
             return False
-        return data.get("status") == "0"
+        online = data.get("status") == "0"
+        _LOGGER.debug("is_on → IP:%s status:%s online:%s",
+                      data.get("ip"), data.get("status"), online)
+        return online
 
     @property
     def device_info(self):
@@ -64,7 +66,12 @@ class DeviceStatusBinarySensor(CoordinatorEntity, BinarySensorEntity):
         data = self.coordinator.data
         if data is not None:
             attrs["ip"] = data.get("ip")
-        # 使用 coordinator 维护的时间戳
         if self.coordinator._last_updated is not None:
             attrs["last_update"] = self.coordinator._last_updated.isoformat()
         return attrs
+
+    async def async_added_to_hass(self) -> None:
+        """当实体添加到 HA 时，手动刷新一次确保立即同步."""
+        await super().async_added_to_hass()
+        _LOGGER.debug("binary_sensor 已添加，手动请求刷新")
+        await self.coordinator.async_request_refresh()
